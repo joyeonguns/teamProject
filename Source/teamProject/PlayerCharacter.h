@@ -98,18 +98,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
 	TMap<int32, int32> ItemAmount;
 
-	// 상태
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "state")
-		FString state = TEXT("Nomal");
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Info")
-	float PoisonDamage = 0;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Info")
-	float PoisonTime = 0;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Info")
-	float HpRegen = 0;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Info")
-	float BuffTime = 0;
 
 	// 스킬레벨
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Info")
@@ -138,4 +126,64 @@ public:
 	void Dead();
 
 	void GetItem();
+
+	/** 상태 관련 **/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "state")
+		FString state = TEXT("Nomal");
+	// 중독 상태 관련
+	// 중독 상태
+	bool bstate_Poison;
+	// 중독 겹침?
+	bool bOvelap_Poison;
+	// 중독 지속시간
+	float PoisonDur;
+	// 중독 데미지
+	float PoisonDmg;
+	// 중독 겹침
+	void ApplyPoison(float _dmg);
+	// 중독 상태
+	void Poison_ing(float deltaTime);
+	
+	// 버프 상태 관련
+	// 버프 상태
+	bool bstate_Buff;
+	// 버프 겹침?
+	bool bOvelap_Buff;
+	// 버프 지속시간
+	float BuffDur;
+	// 버프 리젠
+	float BuffRegen;
+	// 버프 겹침
+	void ApplyBuff();
+	// 버프 상태
+	void Buff_ing(float deltaTime);
+
+
+	// ice 상태 관련
+	// ice 상태
+	bool bstate_ice;
+	// ice 겹침?
+	bool bOvelap_ice;
+	// 기본 속도
+	float amuSpeed;
+	// ice 지속시간
+	float iceDur;
+	// ice 겹침
+	void ApplyIce();
+	// ice 상태
+	void Ice_ing(float deltaTime);
+
+
+	// 기본 머티리얼
+	UPROPERTY(EditAnywhere)
+		class UMaterial* nomal_Material;
+	// ice material
+	UPROPERTY(EditAnywhere)
+	class UMaterial* ice_Material;	
+	// 중독 머티리얼
+	UPROPERTY(EditAnywhere)
+	class UMaterial* poison_Material;
+	// 버프 머티리얼
+	UPROPERTY(EditAnywhere)
+		class UMaterial* buff_Material;
 };

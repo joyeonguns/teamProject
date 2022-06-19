@@ -6,6 +6,7 @@
 #include "Components/PrimitiveComponent.h"
 #include "GameplayTagContainer.h"
 #include "Engine.h"
+#include "Math/UnrealMathUtility.h"
 
 // Sets default values
 AMissileActor::AMissileActor()
@@ -16,13 +17,20 @@ AMissileActor::AMissileActor()
 	// BoxMesh에 기본으로 제공되는 박스메쉬 할당
 	BoxMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BoxMesh"));
 	RootComponent = BoxMesh;
+	BoxMesh->CreateDynamicMaterialInstance(0);
 }
 
 // Called when the game starts or when spawned
 void AMissileActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	Tags.Add(FName(*Element));
+
+	if(Element == "poison")
+		BoxMesh->GetStaticMesh()->SetMaterial(0,poison_Material);
+	else if (Element == "ice")
+		BoxMesh->GetStaticMesh()->SetMaterial(0, ice_Material);
+
 }
 
 void AMissileActor::NotifyActorBeginOverlap(AActor* OtherActor)
@@ -31,12 +39,14 @@ void AMissileActor::NotifyActorBeginOverlap(AActor* OtherActor)
 	//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, TEXT("NotifyActorBeginOverlap"));
 
 	
+	
 	if (OtherActor->ActorHasTag(tagName)) {
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, name.ToString());
 
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, TEXT("Attack!!"));
 		UGameplayStatics::ApplyDamage(OtherActor, damage, NULL, this, UDamageType::StaticClass());
-		//Enemy = Cast<AEnemyCharacter>(OtherActor);
+		
+		SpwFloor();
 
 		Destroy();
 	}
@@ -64,6 +74,31 @@ void AMissileActor::SetParameter(FVector des, FName tag, float Damage)
 	// 태그
 	tagName = tag;
 	damage = Damage;
+}
+
+void AMissileActor::SpwFloor()
+{
+	int32 rnd = FMath::RandRange(1, 101);
+	if (rnd <= Sp_Rate)
+	{
+		UWorld* world = GetWorld();
+		FRotator spwRoatation = { 0,0,0 };
+		FVector lc = GetActorLocation();
+		FVector spwLocation = { lc.X, lc.Y, 20.f};
+
+		FActorSpawnParameters spwParameter;
+		spwParameter.Owner = this;
+		spwParameter.Instigator = GetInstigator();
+
+		if (Element == "poison") {
+			AicePlate_Actor* spwFloor = world->SpawnActor<AicePlate_Actor>(PoisonFloor, spwLocation, spwRoatation, spwParameter);
+		}
+		else if (Element == "ice") {
+			AicePlate_Actor* spwFloor = world->SpawnActor<AicePlate_Actor>(iceFloor, spwLocation, spwRoatation, spwParameter);
+		}
+		
+
+	}
 }
 
 void AMissileActor::MoveMissile(float Deltatime)

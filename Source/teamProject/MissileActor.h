@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "PlayerCharacter.h"
 #include "EnemyCharacter.h"
+#include "icePlate_Actor.h"
 #include "MissileActor.generated.h"
 
 UCLASS()
@@ -38,10 +39,37 @@ public:
 	// destination을 초기화
 	void SetParameter(FVector des, FName tag,float Damage);
 
-	//AEnemyCharacter* Enemy;
 
 	// 데미지
-	float damage = 20.0f;
+	float damage = 20.0f;	
+	// 탄 속성
+	FString Element = "ice";
+	// 속성탄 확률 
+	int32 Sp_Rate = 30;
+
+
+	// 탄 머티리얼
+	 
+	// 기본 머티리얼
+	UPROPERTY(EditAnywhere)
+		class UMaterial* nomal_Material;
+	// ice material
+	UPROPERTY(EditAnywhere)
+		class UMaterial* ice_Material;
+	// 중독 머티리얼
+	UPROPERTY(EditAnywhere)
+		class UMaterial* poison_Material;
+
+	// 장판 소환
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<AicePlate_Actor> iceFloor;
+
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<AicePlate_Actor> PoisonFloor;
+
+	void SpwFloor();
+	
+	
 
 
 private:

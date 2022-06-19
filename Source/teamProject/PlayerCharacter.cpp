@@ -70,14 +70,13 @@ APlayerCharacter::APlayerCharacter()
 	ItemArray[3] = 4;
 	ItemAmount.Emplace(4, 1);
 
-	/*static ConstructorHelpers::FObjectFinder<UGunData> GunStructObject(TEXT("DataTable'/Game/DataTable/GunDataTable.GunDataTable'"));
-	if (GunStructObject.Succeeded()) {
-		GunDataTable = GunStructObject.Object;
-	}*/
-
-
+	
+	// 세팅
 	MaxGold = 1000;
 	CurGold = MaxGold;
+
+	//	
+	
 }
 
 // Called when the game starts or when spawned
@@ -92,37 +91,57 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	curHP += HpRegen * DeltaTime;
+	// 최대 채력
+	//curHP += HpRegen * DeltaTime;
 	if (curHP >= 100)
 		curHP = 100;
 
-	if (state == "Poison") {
-		curHP -= PoisonDamage * DeltaTime;
-		PoisonTime -= 1 * DeltaTime;
-		if (PoisonTime <= 0) {
-			PoisonTime = 0;
-			PoisonDamage = 0;
-			state = "Nomal";
-		}
-		
+	// Poison Apply
+	if (bOvelap_Poison == true) {
+		ApplyPoison(5.0);
+		bOvelap_Poison = false;
 	}
-	else if (state == "Buff") {
-		BuffTime -= 1 * DeltaTime;
-		if (BuffTime <= 0) {
-			BuffTime = 0;
-			HpRegen = 0;
-			state = "Nomal";
-		}
+	// Poison 상태
+	if (bstate_Poison == true) {
+		Poison_ing(DeltaTime);
+	}
+
+	// ice Apply
+	if (bOvelap_ice == true) {
+		ApplyIce();
+		bOvelap_ice = false;
+	}
+	// ice 상태
+	if (bstate_ice == true) {
+		Ice_ing(DeltaTime);
+	}
+
+	// Buff Apply
+	if (bOvelap_Buff == true) {
+		ApplyBuff();
+		bOvelap_Buff = false;
+	}
+	// Buff 상태
+	if (bstate_Buff == true) {
+		Buff_ing(DeltaTime);
 	}
 }
 
 void APlayerCharacter::NotifyActorBeginOverlap(AActor* OtherActor)
 {
-	//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Search Item"));
+	// 아이템 박스획득
 	if (OtherActor->ActorHasTag("ItemBox")) {
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Overrap Item"));
 		OverrapItemBox_True();
 		ItemBox = Cast<ADropBox>(OtherActor);
+	}
+	// ice Overlap On
+	if (OtherActor->ActorHasTag("ice")) {
+		bOvelap_ice = true;
+	}
+	// 독 Overlap On
+	if (OtherActor->ActorHasTag("poison")) {
+		bOvelap_Poison = true;
 	}
 }
 
@@ -130,6 +149,14 @@ void APlayerCharacter::NotifyActorEndOverlap(AActor* OtherActor)
 {
 	if (OtherActor->ActorHasTag("ItemBox")) {
 		OverrapItemBox_False();
+	}
+	// ice Overlap Off
+	if (OtherActor->ActorHasTag("ice")) {
+		bOvelap_ice = false;
+	}
+	// 독 Overlap Off
+	if (OtherActor->ActorHasTag("poison")) {
+		bOvelap_Poison = false;
 	}
 }
 
@@ -189,9 +216,7 @@ float APlayerCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent
 
 	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Hit!!"), curHp));
 	if (curHP <= 0) {
-		//DropItemBox();
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Player_DEAD!!!")));
-		//this->Destroy();
 		Dead();
 	}
 	else {
@@ -228,23 +253,16 @@ void APlayerCharacter::Dead()
 void APlayerCharacter::GetItem()
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Get Item"));
-	/*int j = 0;
-	for (int i : ItemArray) {
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("" + FString::FromInt(j) + " : " + FString::FromInt(i)));
-		j++;
-	}*/
 	
 	int32 getItem = ItemBox->GetItemCode();
 	int32 num = 0;
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("num : " + FString::FromInt(num)));
 
 
-	//ItemAmount[1] += 1;
-
 	if (ItemArray.Find(getItem, num) && getItem !=0) {
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Item++"));
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Item : " + FString::FromInt(num)));
-		//ItemAmount[num] = ItemAmount[num] + 1;
+		
 		ItemAmount[getItem] += 1;
 	}
 	else {
@@ -269,6 +287,108 @@ void APlayerCharacter::GetItem()
 
 
 	ItemBox->Destroy();
+}
+
+void APlayerCharacter::ApplyPoison(float _dmg)
+{
+	// 최초 적용
+	if (bstate_Poison == false) {
+		// 중독 설정
+		GetMesh()->SetMaterial(0, poison_Material);
+		bstate_Poison = true;
+	}
+
+	// 중독 갱신	
+	PoisonDur = 5.0f;
+	PoisonDmg = _dmg;
+	state = "Poison";
+}
+
+void APlayerCharacter::Poison_ing(float deltaTime)
+{
+	// 중독 시간
+	PoisonDur -= deltaTime;
+	
+	if (0 >= PoisonDur) {
+		// 중독 해제
+		bstate_Poison = false;
+		if (state == "Poison") {
+			// 중독 상태 해제
+			state = "nomal";			
+			GetMesh()->SetMaterial(0, nomal_Material);
+		}						
+		// 중독 데미지 초기화
+		PoisonDmg = 0;
+	}
+	else {
+		// 중독 데미지	처리
+		curHP -= PoisonDmg * deltaTime;
+		if (curHP <= 0)
+			Dead();
+	}
+}
+
+void APlayerCharacter::ApplyBuff()
+{
+	// 최초 적용
+	if (bstate_Buff == false) {
+		// 버프 설정
+		GetMesh()->SetMaterial(0, buff_Material);
+		bstate_Buff = true;
+	}
+
+	// 버프 적용	
+	BuffDur = 10.0f;
+	BuffRegen = 5.0f;
+	state = "Buff";
+}
+
+void APlayerCharacter::Buff_ing(float deltaTime)
+{
+	// 버프 시간
+	BuffDur -= deltaTime;
+
+	if (0 >= BuffDur) {
+		// 버프 해제
+		bstate_Buff = false;
+		if (state == "Buff") {
+			// 버프 상태 해제
+			state = "nomal";			
+			GetMesh()->SetMaterial(0, nomal_Material);
+		}			
+		// 버프 리젠 초기화
+		BuffRegen = 0;
+	}
+	else {
+		// 버프 리젠	처리
+		curHP += BuffRegen * deltaTime;
+	}
+}
+
+void APlayerCharacter::ApplyIce()
+{
+	// 최초 적용
+	if (bstate_ice == false) {
+		amuSpeed = GetCharacterMovement()->MaxWalkSpeed * 0.5f;
+		GetMesh()->SetMaterial(0, ice_Material);
+		bstate_ice = true;
+	}
+	
+	iceDur = 3.0f;
+}
+
+void APlayerCharacter::Ice_ing(float deltaTime)
+{
+	iceDur -= deltaTime;
+
+	if (0 >= iceDur) {
+		GetCharacterMovement()->MaxWalkSpeed += amuSpeed;
+		GetMesh()->SetMaterial(0, nomal_Material);
+		bstate_ice = false;
+	}
+	else {
+		GetCharacterMovement()->MaxWalkSpeed = amuSpeed;
+	}
 }
 
 
