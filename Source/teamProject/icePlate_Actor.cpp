@@ -28,9 +28,7 @@ void AicePlate_Actor::BeginPlay()
 
 void AicePlate_Actor::NotifyActorBeginOverlap(AActor* OtherActor)
 {
-	if (OtherActor->ActorHasTag("Enemy")) {
-		Frozen(OtherActor);		
-	}
+	
 }
 
 void AicePlate_Actor::NotifyActorEndOverlap(AActor* OtherActor)

@@ -30,7 +30,7 @@ public:
 	UPROPERTY(EditAnywhere)
 		UStaticMeshComponent* CylinderMesh;
 
-	float time = 3.0f;
+	float time = 13.0f;
 	float curTime;
 	
 	void Frozen(AActor* OtherActor);

@@ -19,6 +19,9 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
+	virtual void NotifyActorEndOverlap(AActor* OtherActor) override;
+
 	UPROPERTY(EditAnywhere, Category = "itemCode")
 		int32 itemCode = 0;
 	UPROPERTY(EditAnywhere, Category = "itemCode")
@@ -53,6 +56,69 @@ public:
 		FVector Pos1 = { 0,0,118 };
 	UPROPERTY(EditAnywhere, Category = "PatrollPos")
 		FVector Pos2 = { 0,0,118 };
+
+
+	/** 상태 관련 **/
+	FString state = TEXT("Nomal");
+
+	// 중독 상태 관련
+	// 중독 상태
+	bool bstate_Poison;
+	// 중독 겹침?
+	bool bOvelap_Poison;
+	// 중독 지속시간
+	float PoisonDur;
+	// 중독 데미지
+	float PoisonDmg;
+	// 중독 겹침
+	void ApplyPoison(float _dmg);
+	// 중독 상태
+	void Poison_ing(float deltaTime);
+
+	// 버프 상태 관련
+	// 버프 상태
+	bool bstate_Buff;
+	// 버프 겹침?
+	bool bOvelap_Buff;
+	// 버프 지속시간
+	float BuffDur;
+	// 버프 리젠
+	float BuffRegen;
+	// 버프 겹침
+	void ApplyBuff();
+	// 버프 상태
+	void Buff_ing(float deltaTime);
+
+
+	// ice 상태 관련
+	// ice 상태
+	bool bstate_ice;
+	// ice 겹침?
+	bool bOvelap_ice;
+	// 기본 속도
+	float amuSpeed;
+	// ice 지속시간
+	float iceDur;
+	// ice 겹침
+	void ApplyIce();
+	// ice 상태
+	void Ice_ing(float deltaTime);
+
+	void Dead();
+
+
+	// 기본 머티리얼
+	UPROPERTY(EditAnywhere)
+		class UMaterial* nomal_Material;
+	// ice material
+	UPROPERTY(EditAnywhere)
+		class UMaterial* ice_Material;
+	// 중독 머티리얼
+	UPROPERTY(EditAnywhere)
+		class UMaterial* poison_Material;
+	// 버프 머티리얼
+	UPROPERTY(EditAnywhere)
+		class UMaterial* buff_Material;
 
 
 private:

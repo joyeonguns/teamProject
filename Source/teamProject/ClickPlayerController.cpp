@@ -25,8 +25,6 @@ void AClickPlayerController::BeginPlay()
 
 	SetGun(2);
 
-	//bRelord = true;
-	//RelordTime = Player->GunDataTable.
 }
 
 // bool АјАн
@@ -285,7 +283,7 @@ void AClickPlayerController::Fire(FVector Destination)
 		SpawnParamater.Owner = this;
 		SpawnParamater.Instigator = GetInstigator();
 		FVector desNormal = (Destination - MyPawn->GetActorLocation()).GetSafeNormal();;
-		FVector spawnLocation = MyPawn->GetActorLocation() + desNormal * 50;
+		FVector spawnLocation = MyPawn->GetActorLocation() + desNormal*100;
 
 		AMissileActor* Missile = world->SpawnActor<AMissileActor>(MissileClass, spawnLocation, SpawnRotation, SpawnParamater);
 		FName tag = TEXT("Enemy");
@@ -321,16 +319,12 @@ void AClickPlayerController::UsingItem_1()
 
 void AClickPlayerController::UsingItem_2()
 {
-	Player->state = TEXT("Poison");
-	Player->PoisonDamage = 3.f;
-	Player->PoisonTime = 10.f;
+	Player->ApplyPoison(3.f);
 }
 
 void AClickPlayerController::UsingItem_3()
 {
-	Player->state = TEXT("Buff");
-	Player->HpRegen = 10.f;
-	Player->BuffTime = 10.f;
+	Player->ApplyBuff();
 }
 
 void AClickPlayerController::UsingItem_4()
@@ -534,6 +528,7 @@ void AClickPlayerController::Reloading(float deltaTime)
 
 void AClickPlayerController::SetSkill(int32 s1, int32 s2, int32 s3)
 {
+
 	Armo = Armo + curGunData->Armo * 0.2 *s1;
 	RPM = RPM - curGunData->RPM * 0.1 * s1;
 }
